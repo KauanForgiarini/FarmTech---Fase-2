@@ -18,6 +18,13 @@
       "attrs": {}
     },
     {
+      "id": "r_pull",
+      "type": "wokwi-resistor",
+      "top": -120,
+      "left": 350,
+      "attrs": { "value": "10000" }
+    },
+    {
       "id": "ldr1",
       "type": "wokwi-photoresistor-sensor",
       "top": 80,
@@ -50,7 +57,7 @@
       "type": "wokwi-relay-module",
       "top": -80,
       "left": -200,
-      "attrs": { "color": "blue" }
+      "attrs": {}
     },
     {
       "id": "led_on",
@@ -82,33 +89,38 @@
     }
   ],
   "connections": [
-    ["esp:D15", "dht1:SDA", "green", []],
-    ["esp:3V3", "dht1:VCC", "red", []],
-    ["esp:GND.1", "dht1:GND", "black", []],
+    ["esp:TX0", "$serialMonitor:RX", "", []],
+    ["esp:RX0", "$serialMonitor:TX", "", []],
 
-    ["esp:D34", "ldr1:AO", "orange", []],
-    ["esp:3V3", "ldr1:VCC", "red", []],
-    ["esp:GND.1", "ldr1:GND", "black", []],
+    ["esp:D15",   "dht1:SDA",   "green",  []],
+    ["esp:3V3",   "dht1:VCC",   "red",    []],
+    ["esp:GND.1", "dht1:GND",   "black",  []],
+    ["esp:3V3",   "r_pull:1",   "red",    []],
+    ["r_pull:2",  "dht1:SDA",   "green",  []],
 
-    ["esp:D12", "btn_n:1.l", "yellow", []],
-    ["esp:GND.2", "btn_n:2.l", "black", []],
+    ["esp:D34",   "ldr1:AO",    "orange", []],
+    ["esp:3V3",   "ldr1:VCC",   "red",    []],
+    ["esp:GND.1", "ldr1:GND",   "black",  []],
 
-    ["esp:D13", "btn_p:1.l", "yellow", []],
-    ["esp:GND.2", "btn_p:2.l", "black", []],
+    ["esp:D12",   "btn_n:1.l",  "yellow", []],
+    ["esp:GND.2", "btn_n:2.l",  "black",  []],
 
-    ["esp:D14", "btn_k:1.l", "yellow", []],
-    ["esp:GND.2", "btn_k:2.l", "black", []],
+    ["esp:D13",   "btn_p:1.l",  "yellow", []],
+    ["esp:GND.2", "btn_p:2.l",  "black",  []],
 
-    ["esp:D26", "relay1:IN", "purple", []],
-    ["esp:3V3", "relay1:VCC", "red", []],
-    ["esp:GND.1", "relay1:GND", "black", []],
+    ["esp:D14",   "btn_k:1.l",  "yellow", []],
+    ["esp:GND.2", "btn_k:2.l",  "black",  []],
 
-    ["esp:D2", "r1:1", "green", []],
-    ["r1:2", "led_on:A", "green", []],
-    ["esp:GND.1", "led_on:C", "black", []],
+    ["esp:D26",   "relay1:IN",  "purple", []],
+    ["esp:VIN",   "relay1:VCC", "red",    []],
+    ["esp:GND.1", "relay1:GND", "black",  []],
 
-    ["esp:D4", "r2:1", "red", []],
-    ["r2:2", "led_off:A", "red", []],
-    ["esp:GND.1", "led_off:C", "black", []]
+    ["esp:D2",    "r1:1",       "green",  []],
+    ["r1:2",      "led_on:A",   "green",  []],
+    ["esp:GND.1", "led_on:C",   "black",  []],
+
+    ["esp:D4",    "r2:1",       "red",    []],
+    ["r2:2",      "led_off:A",  "red",    []],
+    ["esp:GND.1", "led_off:C",  "black",  []]
   ]
 }
