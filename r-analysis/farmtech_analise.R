@@ -1,7 +1,10 @@
 # ============================================================
 #  FarmTech Solutions - Análise Estatística em R
 #  Fase 2 - FIAP Inteligência Artificial
-#  Aluno: Kauan Maciel Forgiarini | RM 574005
+#  Aluno: Kauan Maciel Forgiarini | RM: 574005 
+# Aluno: Wagner Adriano De Souza Silva Junio | RM: RM569431 
+# Aluno: Thiago Lucas da Costa Bessa | RM: RM570367 
+# Aluna: Beatriz de Oliveira Ossola Ribeiro | RM: RM570190
 # ============================================================
 #
 #  Objetivo:
