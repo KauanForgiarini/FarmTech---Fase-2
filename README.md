@@ -1,8 +1,7 @@
 # 🌱 FarmTech Solutions — Sistema de Irrigação Inteligente (Fase 2)
 
 **FIAP — Inteligência Artificial**  
-**Aluno:** Kauan Maciel Forgiarini  
-**RM:** 574005  
+**Aluno:** Kauan Maciel Forgiarini | **RM:** 574005
 
 ---
 
@@ -42,15 +41,15 @@ Com base nesses dados, o sistema decide automaticamente quando acionar a **bomba
 
 A soja foi escolhida por ser a principal cultura do Rio Grande do Sul e uma das mais importantes do agronegócio brasileiro.
 
-### Necessidades ideais da soja:
+### Necessidades ideais da soja
 
-| Parâmetro      | Faixa Ideal       | Fonte de dados no circuito |
-|----------------|-------------------|----------------------------|
-| pH do solo     | 5.5 – 7.0         | Sensor LDR (analógico)     |
-| Umidade do solo| 60% – 80%         | DHT22                      |
-| Nitrogênio (N) | Fixação biológica | Botão verde (GPIO 12)      |
-| Fósforo (P)    | Essencial          | Botão verde (GPIO 13)      |
-| Potássio (K)   | Essencial          | Botão verde (GPIO 14)      |
+| Parâmetro | Faixa Ideal | Sensor no Circuito |
+|-----------|------------|-------------------|
+| pH do solo | 5,5 – 7,0 | LDR (analógico) |
+| Umidade do solo | 60% – 80% | DHT22 |
+| Nitrogênio (N) | 80–120 kg/ha | Botão verde (GPIO 12) |
+| Fósforo (P) | 60–90 kg/ha | Botão verde (GPIO 14) |
+| Potássio (K) | 80–100 kg/ha | Botão verde (GPIO 27) |
 
 > **Referência:** Embrapa Soja — *Tecnologias de Produção de Soja* (2023)
 
@@ -58,126 +57,150 @@ A soja foi escolhida por ser a principal cultura do Rio Grande do Sul e uma das 
 
 ## 3. Componentes e Mapeamento de Pinos
 
-| Componente              | Tipo              | GPIO (ESP32) | Descrição                                        |
-|-------------------------|-------------------|:------------:|--------------------------------------------------|
-| Botão N (Nitrogênio)    | Push button verde | GPIO 12      | Nível de N: HIGH=ausente / LOW=presente          |
-| Botão P (Fósforo)       | Push button verde | GPIO 13      | Nível de P: HIGH=ausente / LOW=presente          |
-| Botão K (Potássio)      | Push button verde | GPIO 14      | Nível de K: HIGH=ausente / LOW=presente          |
-| Sensor LDR              | Fotoresistor      | GPIO 34      | pH simulado — leitura analógica 0–4095 → 0–14    |
-| Sensor DHT22            | Temp. e umidade   | GPIO 15      | Umidade do solo simulada (leitura do ar)         |
-| Relé azul               | Relay module      | GPIO 26      | Aciona bomba d'água (irrigação)                  |
-| LED Verde               | LED               | GPIO 2       | Indica irrigação ATIVA                           |
-| LED Vermelho            | LED               | GPIO 4       | Indica irrigação INATIVA                         |
-| Resistor 220Ω (x2)      | Resistor          | —            | Proteção dos LEDs                                |
+| Componente | Substituto no Wokwi | GPIO (ESP32) | Tipo de Sinal |
+|-----------|--------------------|-----------|----|
+| Sensor de N | Push button verde | GPIO 12 | Digital PULLUP |
+| Sensor de P | Push button verde | GPIO 14 | Digital PULLUP |
+| Sensor de K | Push button verde | GPIO 27 | Digital PULLUP |
+| Sensor de pH | LDR (fotoresistor) | GPIO 34 | Analógico 0–4095 |
+| Sensor de umidade | DHT22 | GPIO 15 | Digital 1-wire |
+| Bomba d'água | Relé Azul | GPIO 26 | Digital Output |
+| LED de status | LED + resistor 220Ω | GPIO 2 | Digital Output |
+
+**Por que esses substitutos?**
+- **Botões → NPK:** os nutrientes são booleanos — adequado (botão pressionado = `LOW`) ou ausente (solto = `HIGH`)
+- **LDR → pH:** leitura 0–4095 mapeada para 0,0–14,0. Mais luz = ADC maior = pH mais alto
+- **DHT22 → Umidade do solo:** o percentual de umidade relativa representa a capacidade de campo do solo
 
 ---
 
 ## 4. Diagrama do Circuito (Wokwi)
 
-### Imagem do circuito completo:
+### Imagem do circuito completo
 
-> ⚠️ **Nota para o avaliador:** As imagens abaixo representam o esquema de conexões do circuito montado no Wokwi.com. O arquivo `diagram.json` na pasta `esp32/` pode ser importado diretamente no Wokwi para replicar o circuito.
+![Circuito FarmTech ESP32 – Wokwi](./docs/images/circuito_wokwi.png)
+
+> O arquivo `esp32/diagram.json` pode ser importado diretamente no [Wokwi.com](https://wokwi.com) para replicar o circuito completo.
+
+### Esquema de conexões
 
 ```
-                        ┌─────────────────────────────────────┐
-                        │           ESP32 DevKit V1            │
-                        │                                      │
-  [DHT22] ─────── SDA ─┤ GPIO 15                              │
-                        │                                      │
-  [LDR]   ─────── AO ──┤ GPIO 34      GPIO 26 ──────── [RELÉ AZUL]
-                        │                                      │
-  [BTN N] ─────────────┤ GPIO 12      GPIO 2  ──[220Ω]── [LED VERDE]
-  [BTN P] ─────────────┤ GPIO 13                              │
-  [BTN K] ─────────────┤ GPIO 14      GPIO 4  ──[220Ω]── [LED VERMELHO]
-                        │                                      │
-  [GND] ───────────────┤ GND                                  │
-  [3V3] ───────────────┤ 3V3                                  │
-                        └─────────────────────────────────────┘
+ESP32 DevKit V1
+├── GPIO 12 ──── [BTN N Verde] ──── GND
+├── GPIO 14 ──── [BTN P Verde] ──── GND
+├── GPIO 27 ──── [BTN K Verde] ──── GND
+├── GPIO 34 ──── [LDR – Saída Analógica]
+│               [LDR VCC] ──── 3.3V
+│               [LDR GND] ──── GND
+├── GPIO 15 ──── [DHT22 DATA]
+│               [DHT22 VCC] ──── 3.3V
+│               [DHT22 GND] ──── GND
+├── GPIO 26 ──── [Relé Azul IN]
+│               [Relé VCC]  ──── 5V
+│               [Relé GND]  ──── GND
+└── GPIO 2  ──── [Resistor 220Ω] ──── [LED Azul] ──── GND
 ```
 
-### Mapa de cores dos fios (Wokwi):
-- 🔴 **Vermelho** → VCC / 3.3V
-- ⚫ **Preto** → GND
-- 🟢 **Verde** → Dados DHT22 e LED verde
-- 🟠 **Laranja** → Saída analógica LDR
-- 🟡 **Amarelo** → Botões NPK
-- 🟣 **Roxo** → Sinal do relé
-- 🔵 **Azul** → Referência do relé (bomba)
+### Mapa de cores dos fios
+
+| Cor | Conexão |
+|-----|---------|
+| 🟢 Verde | Botões NPK → GPIO 12, 14, 27 |
+| 🟠 Laranja | LDR (pH) → GPIO 34 |
+| 🟡 Amarelo | DHT22 (umidade) → GPIO 15 |
+| 🔵 Azul | Relé (bomba) → GPIO 26 |
+| 🟣 Roxo | LED status → GPIO 2 |
+| 🔴 Vermelho | VCC (3.3V / 5V) |
+| ⚫ Preto | GND |
 
 ---
 
 ## 5. Lógica de Irrigação
 
-### Fluxograma de decisão:
-
 ```
-                        INÍCIO
-                          │
-                    ┌─────▼─────┐
-                    │ Chuva      │
-                    │ prevista?  │
-                    └─────┬─────┘
-               SIM ◄──────┴──────► NÃO
-                │                    │
-        NÃO IRRIGAR          ┌───────▼───────┐
-                             │  Umidade ≥ 80%?│
-                             └───────┬───────┘
-                        SIM ◄────────┴────────► NÃO
-                         │                       │
-                 NÃO IRRIGAR             ┌────────▼────────┐
-                 (Solo saturado)         │ pH entre 5.0     │
-                                         │ e 7.5?           │
-                                         └────────┬────────┘
-                                    NÃO ◄─────────┴─────────► SIM
-                                     │                          │
-                             NÃO IRRIGAR                ┌───────▼───────┐
-                             (ALERTAR pH)               │ Umidade < 60%  │
-                                                        │ E (P ou K)?    │
-                                                        └───────┬───────┘
-                                                  NÃO ◄─────────┴──────► SIM
-                                                   │                       │
-                                           NÃO IRRIGAR               ✅ IRRIGAR
-                                                                  (Liga relé/bomba)
+LIGAR BOMBA quando TODAS as condições forem verdadeiras:
+  ✅ Chuva prevista   ≤  5 mm
+  ✅ Umidade do solo  <  60 %
+  ✅ pH               ∈  [5,5 ; 7,0]
+  ✅ N = true  OU  K = true
+
+DESLIGAR BOMBA se qualquer condição falhar:
+  ❌ Chuva prevista > 5 mm   → economia de água
+  ❌ Umidade ≥ 80 %          → solo saturado
+  ❌ pH fora da faixa        → corrigir antes de irrigar
+  ❌ N e K ausentes          → solo nutricionalmente pobre
 ```
 
-### Tabela de decisão resumida:
+### Fluxograma de decisão
 
-| Chuva | Umidade | pH        | P ou K | Decisão          |
-|:-----:|:-------:|:---------:|:------:|------------------|
-| Sim   | qualquer| qualquer  | qualquer| ❌ Não irrigar   |
-| Não   | ≥ 80%   | qualquer  | qualquer| ❌ Solo saturado |
-| Não   | qualquer| < 5.0 ou > 7.5 | qualquer | ❌ Alertar pH |
-| Não   | < 60%   | 5.0–7.5   | ausentes | ❌ Sem nutrientes|
-| Não   | < 60%   | 5.0–7.5   | presente | ✅ **IRRIGAR**   |
-| Não   | 60–79%  | qualquer  | qualquer| ❌ Umidade ok   |
+```
+              INÍCIO (ciclo 3s)
+                    │
+           ┌────────▼────────┐
+           │ Chuva > 5mm?    │──── SIM ──→ BOMBA OFF ❌
+           └────────┬────────┘
+                 NÃO│
+           ┌────────▼────────┐
+           │ Umidade ≥ 80%?  │──── SIM ──→ BOMBA OFF ❌ (saturado)
+           └────────┬────────┘
+                 NÃO│
+           ┌────────▼──────────┐
+           │ pH ∈ [5,5 ; 7,0]? │── NÃO ──→ BOMBA OFF ❌ (alertar pH)
+           └────────┬──────────┘
+                 SIM│
+           ┌────────▼────────┐
+           │ Umidade < 60%?  │──── NÃO ──→ BOMBA OFF (aguarda)
+           └────────┬────────┘
+                 SIM│
+           ┌────────▼────────┐
+           │ N=true ou K=true│──── NÃO ──→ BOMBA OFF ❌ (sem nutrientes)
+           └────────┬────────┘
+                 SIM│
+                    ▼
+              BOMBA ON ✅ 💧
+```
+
+### Tabela de decisão
+
+| Chuva | Umidade | pH | P ou K | Decisão |
+|-------|---------|-----|--------|---------|
+| Sim | qualquer | qualquer | qualquer | ❌ Não irrigar |
+| Não | ≥ 80% | qualquer | qualquer | ❌ Solo saturado |
+| Não | qualquer | < 5,5 ou > 7,0 | qualquer | ❌ Alertar pH |
+| Não | < 60% | 5,5–7,0 | ausentes | ❌ Sem nutrientes |
+| Não | < 60% | 5,5–7,0 | presente | ✅ **IRRIGAR** |
+| Não | 60–79% | qualquer | qualquer | ❌ Umidade ok |
 
 ---
 
 ## 6. Código ESP32 — C/C++
 
-O código principal está em `esp32/farmtech_irrigacao.ino`.
+Arquivo: [`esp32/farmtech_irrigacao.ino`](./esp32/farmtech_irrigacao.ino)
 
-### Principais funções:
+### Principais funções
 
-| Função           | Descrição                                                   |
-|------------------|-------------------------------------------------------------|
-| `setup()`        | Inicializa pinos, serial e DHT22                            |
-| `loop()`         | Lê sensores, processa lógica e aciona atuadores a cada 3s   |
-| `ldrParaPH()`    | Converte leitura bruta 0–4095 do LDR para pH 0.0–14.0      |
-| `deveIrrigar()`  | Aplica a lógica de decisão para soja                        |
-| `lerSerial()`    | Recebe dado de previsão de chuva enviado pelo Python        |
-| `exibirStatus()` | Exibe dados no Monitor Serial (formato legível + CSV)       |
+| Função | Descrição |
+|--------|-----------|
+| `setup()` | Inicializa pinos, Serial (115200) e DHT22 |
+| `loop()` | Ciclo de 3s: lê sensores → decide → aciona relé → loga |
+| `ldrParaPH()` | Converte ADC 0–4095 do LDR para pH 0,0–14,0 |
+| `deveIrrigar()` | Aplica as 5 regras de decisão, retorna `bool` |
+| `lerSerial()` | Recebe previsão de chuva (mm) do Python via Serial |
+| `exibirStatus()` | Loga dados no Monitor Serial em formato legível + CSV |
 
-### Saída serial (exemplo):
+### Exemplo de saída no Monitor Serial
+
 ```
 --------------------------------------------------
-Cultura: SOJA | Hora: 12
-NPK -> N:SIM | P:NAO | K:SIM
-pH (LDR): 6.23 [IDEAL PARA SOJA]
-Umidade Solo: 52.0% | Temperatura: 27.5°C
-Chuva Prevista: NAO
-Bomba d'agua (rele): LIGADA
-CSV,1,0,1,6.23,52.0,27.5,0,1
+FarmTech Solutions | Kauan Maciel Forgiarini RM574005
+Cultura: SOJA
+--------------------------------------------------
+NPK    → N: SIM  | P: NÃO  | K: SIM
+pH     → 6.23  ✅ IDEAL PARA SOJA (5.5–7.0)
+Umidade→ 52.0%  ⬇ Baixa
+Temp.  → 27.5 °C
+Chuva  → 0.0 mm (sem previsão)
+BOMBA  → 💧 LIGADA — irrigando!
 --------------------------------------------------
 ```
 
@@ -185,100 +208,78 @@ CSV,1,0,1,6.23,52.0,27.5,0,1
 
 ## 7. Integração Python + OpenWeather API (Ir Além 1)
 
-Script: `python/farmtech_api.py`
+Arquivo: [`python/farmtech_api.py`](./python/farmtech_api.py)
 
-### Funcionalidades:
+### Fluxo de dados
 
-1. **Consulta automática** à API [OpenWeatherMap](https://openweathermap.org/api) a cada 5 minutos
-2. **Leitura de dados via Serial** (pyserial) — parseia linhas CSV enviadas pelo ESP32
-3. **Modo simulação** — quando sem hardware ou Serial indisponível, gera dados para teste
-4. **Envio de decisão** ao ESP32 via Serial ('0' = sem chuva, '1' = chuva prevista)
-5. **Persistência** — grava histórico completo em `farmtech_historico.csv`
-6. **Dashboard** — exibe painel visual atualizado no terminal a cada leitura
+```
+OpenWeather API (JSON)
+        │
+        ▼
+  Python Script
+        │  float "8.5\n" via Serial
+        ▼
+     ESP32
+        │  suspende irrigação se > 5mm
+        ▼
+  Relé desliga
+        │
+        ▼
+  historico_clima.csv → análise em R
+```
 
-### Como configurar a API:
+### Funcionalidades
+
+1. Consulta precipitação prevista (3h) na API OpenWeatherMap (plano gratuito — 60 calls/min)
+2. Envia o valor ao ESP32 via `Serial.write()` — lido com `Serial.available()` + `Serial.readStringUntil('\n')`
+3. **Fallback manual:** quando a porta Serial não está disponível (Wokwi gratuito), exibe o valor para colar no código C/C++
+4. Salva histórico em CSV para alimentar a análise em R
+
+### Como configurar
+
+```python
+# Em python/farmtech_api.py:
+API_KEY = "sua_chave_aqui"   # https://openweathermap.org → My API Keys
+CIDADE  = "Santa Maria,BR"
+```
+
+### Instalação
 
 ```bash
-# 1. Crie conta gratuita em https://openweathermap.org
-# 2. Gere sua API Key
-# 3. Edite farmtech_api.py:
-API_KEY = "sua_chave_aqui"
-CIDADE  = "Santa Maria,BR"   # ou sua cidade
-```
-
-### Instalação:
-
-```bash
-cd python/
-pip install -r requirements.txt
-python farmtech_api.py
-```
-
-### Exemplo de dashboard no terminal:
-
-```
-============================================================
-   🌱 FARMTECH SOLUTIONS - Irrigação Inteligente - SOJA
-   Aluno: Kauan Maciel Forgiarini | RM 574005
-============================================================
-  ⏰ 2025-08-22 14:35:10
-
-  📍 CLIMA (OpenWeather)
-     Cidade     : Santa Maria
-     Condição   : Parcialmente nublado
-     Chuva 3h   : 0.0 mm
-     Alerta     : ☀️  Sem chuva
-
-  🧪 SOLO (ESP32 / Sensores)
-     Nitrogênio : ✅ Presente
-     Fósforo    : ✅ Presente
-     Potássio   : ❌ Ausente
-     pH         : 6.35  ✅ Ideal
-     Umidade    : 52.0%  ⬇️  Baixa
-     Temperatura: 28.5°C
-
-  💧 DECISÃO DE IRRIGAÇÃO
-     Status     : 🟢 BOMBA LIGADA - IRRIGANDO
-     Motivo     : Umidade baixa (52.0%) com nutrientes disponíveis - IRRIGAR
-============================================================
+pip install requests pyserial
+python python/farmtech_api.py
 ```
 
 ---
 
 ## 8. Análise Estatística em R (Ir Além 2)
 
-Script: `r-analysis/farmtech_analise.R`
+Arquivo: [`r-analysis/farmtech_analise.R`](./r-analysis/farmtech_analise.R)
 
-### O que o script faz:
+### Etapas da análise
 
-1. **Carrega** o CSV gerado pelo Python (ou gera dados simulados se não existir)
-2. **Estatísticas descritivas** — média, mediana, desvio padrão de pH, umidade e temperatura
-3. **Análise de frequência** — proporção de ativações da bomba
-4. **Gráficos** exportados em PNG:
-   - Histograma de umidade por status da bomba
-   - Scatter plot pH × umidade
-   - Boxplot umidade por presença de Fósforo
-   - Série temporal de umidade
-5. **Regressão Logística** — modelo preditivo de ativação da bomba com métricas de acurácia
-6. **Predição individual** — simulação de um novo cenário de campo
+1. Carrega `historico_clima.csv` gerado pelo Python (ou cria dados simulados com `set.seed(574005)`)
+2. Engenharia de variáveis: cria coluna `irrigacao` com as mesmas regras do firmware
+3. Estatísticas descritivas de todas as variáveis ambientais
+4. Matriz de correlação de Pearson (`corrplot`)
+5. **Regressão Logística:** `irrigacao ~ umidade_pct + chuva_3h_mm + temperatura_c`
+6. Avalia acurácia, sensibilidade e especificidade do modelo
+7. Decisão para leitura atual
 
-### Como executar:
+### Gráficos gerados
+
+| Arquivo | Conteúdo |
+|---------|---------|
+| `correlacao.png` | Mapa de calor de correlações |
+| `umidade_temporal.png` | Série temporal + pontos de irrigação |
+| `distribuicao_chuva.png` | Histograma da precipitação prevista |
+| `probabilidade_irrigacao.png` | P(irrigar) estimada pelo modelo logístico |
+
+### Instalação
 
 ```r
-# No RStudio ou terminal R:
-setwd("r-analysis/")
-source("farmtech_analise.R")
-```
-
-### Exemplo de saída da regressão:
-
-```
-Registros para treino: 160
-Registros para teste : 40
-
-Acurácia : 94.2%
-Sensibilidade (irrigar quando deve): 91.3%
-Especificidade (não irrigar quando não deve): 96.7%
+install.packages(c("ggplot2","corrplot","dplyr","readr","lubridate"))
+Rscript r-analysis/farmtech_analise.R
 ```
 
 ---
@@ -288,34 +289,33 @@ Especificidade (não irrigar quando não deve): 96.7%
 ### Passo 1 — Circuito no Wokwi
 
 1. Acesse [wokwi.com](https://wokwi.com) e crie um novo projeto ESP32
-2. Importe o arquivo `esp32/diagram.json` ou monte manualmente conforme o diagrama
-3. Copie e cole o conteúdo de `esp32/farmtech_irrigacao.ino` no editor
-4. Clique em **▶ Play** para iniciar a simulação
-5. Abra o **Monitor Serial** (115200 baud) para ver as leituras
+2. No editor de código, cole o conteúdo de `esp32/farmtech_irrigacao.ino`
+3. No editor de diagrama, cole o conteúdo de `esp32/diagram.json`
+4. Clique em ▶️ **Start Simulation**
+5. Abra o **Monitor Serial** (115200 baud) para acompanhar as leituras
 
 ### Passo 2 — Testar sensores
 
-| Ação                         | Efeito esperado                              |
-|------------------------------|----------------------------------------------|
-| Pressionar BTN P ou BTN K   | Nutrientes presentes                         |
-| Diminuir luz no LDR          | pH cai (mais ácido)                          |
-| Aumentar umidade no DHT22   | Umidade sobe (menos necessidade de irrigar)  |
-| Digitar `1` no Serial        | Chuva prevista → bomba desliga               |
-| Digitar `0` no Serial        | Sem chuva → lógica normal retomada           |
+| Ação no Wokwi | Efeito esperado |
+|---------------|----------------|
+| Pressionar BTN N ou BTN K | Nutrientes marcados como presentes |
+| Ajustar slider do LDR | Muda leitura de pH (0,0–14,0) |
+| Ajustar slider do DHT22 | Muda umidade (bomba liga abaixo de 60%) |
+| Digitar `10.0` no Serial | Chuva 10mm → bomba desliga |
+| Digitar `0.0` no Serial | Sem chuva → lógica retomada |
 
 ### Passo 3 — Script Python
 
 ```bash
 pip install requests pyserial
-cd python/
-python farmtech_api.py
+python python/farmtech_api.py
 ```
 
 ### Passo 4 — Análise R
 
 ```bash
 Rscript r-analysis/farmtech_analise.R
-# Os gráficos serão salvos em r-analysis/graficos/
+# Gráficos salvos em r-analysis/graficos/
 ```
 
 ---
@@ -323,34 +323,36 @@ Rscript r-analysis/farmtech_analise.R
 ## 10. Estrutura de Pastas
 
 ```
-farmtech-fase2/
+FarmTech---Fase-2/
 │
-├── esp32/
-│   ├── farmtech_irrigacao.ino    # Código principal ESP32 (C/C++)
-│   └── diagram.json              # Diagrama Wokwi importável
-│
-├── python/
-│   ├── farmtech_api.py           # Integração OpenWeather + Serial + CSV
-│   └── requirements.txt          # Dependências Python
-│
-├── r-analysis/
-│   ├── farmtech_analise.R        # Script de análise estatística
-│   └── graficos/                 # Gráficos gerados (PNG)
+├── README.md                          ← Este arquivo
 │
 ├── docs/
-│   └── images/                   # Capturas de tela do Wokwi
+│   └── images/
+│       └── circuito_wokwi.png         ← Imagem do circuito (Wokwi)
 │
-└── README.md                     # Este arquivo
+├── esp32/
+│   ├── farmtech_irrigacao.ino         ← Firmware C/C++ ESP32
+│   └── diagram.json                   ← Circuito importável no Wokwi
+│
+├── python/
+│   ├── farmtech_api.py                ← OpenWeather + Serial + CSV
+│   └── requirements.txt               ← Dependências Python
+│
+└── r-analysis/
+    ├── farmtech_analise.R             ← Análise estatística + regressão
+    └── graficos/                      ← Gráficos gerados (PNG)
 ```
 
 ---
 
 ## 11. Referências
 
-- EMBRAPA. *Tecnologias de Produção de Soja — Região Central do Brasil 2023*. Disponível em: https://www.embrapa.br
-- OpenWeatherMap API. Disponível em: https://openweathermap.org/api
-- Wokwi ESP32 Simulator. Disponível em: https://wokwi.com
-- ESP32 Arduino Reference. Disponível em: https://docs.espressif.com
+- EMBRAPA. *Tecnologias de Produção de Soja — Região Central do Brasil 2023*. Disponível em: <https://www.embrapa.br>
+- CONAB. *12º Levantamento Safra de Grãos 2023/24*. Disponível em: <https://www.conab.gov.br>
+- OpenWeatherMap API. Disponível em: <https://openweathermap.org/api>
+- Wokwi ESP32 Simulator. Disponível em: <https://wokwi.com>
+- ESP32 Arduino Reference. Disponível em: <https://docs.espressif.com>
 - R Core Team. *R: A Language and Environment for Statistical Computing*. Vienna, 2024.
 - FIAP. *Material de Aula — Inteligência Artificial, Fase 2*. 2025.
 
@@ -358,15 +360,15 @@ farmtech-fase2/
 
 ## 12. Vídeo Demonstrativo
 
-> 🎥 Link do vídeo no YouTube (sem listagem): **[A ser inserido após gravação]**
+> 🎥 **[Clique aqui para assistir no YouTube](https://youtube.com/watch?v=LINK_DO_VIDEO)**
 
 O vídeo demonstra:
-- Montagem do circuito no Wokwi
-- Funcionamento dos sensores em tempo real
-- Lógica de decisão da bomba sendo acionada
+- Montagem e funcionamento do circuito no Wokwi
+- Testes com os botões NPK, LDR e DHT22
+- Lógica de decisão da bomba sendo acionada em tempo real
 - Dashboard Python com integração da API OpenWeather
-- Resultados da análise em R com os gráficos gerados
+- Resultados da análise estatística em R
 
 ---
 
-*Desenvolvido por Kauan Maciel Forgiarini — RM 574005 | FIAP IA — Fase 2 | 2025*
+*Desenvolvido por **Kauan Maciel Forgiarini** — RM 574005 | FIAP IA — Fase 2 | 2025*
