@@ -8,7 +8,6 @@ farmtech_historico.csv
 # R
 .Rhistory
 .RData
-r-analysis/graficos/*.png
 
 # OS
 .DS_Store
