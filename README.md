@@ -363,7 +363,7 @@ FarmTech---Fase-2/
 
 ## 12. Vídeo Demonstrativo
 
-> 🎥 **[Clique aqui para assistir no YouTube](https://youtube.com/watch?v=LINK_DO_VIDEO)**
+> 🎥 **[Clique aqui para assistir no YouTube](https://youtu.be/IPKNinq16I0?si=PB9ta94qgQYmL8of)**
 
 O vídeo demonstra:
 - Montagem e funcionamento do circuito no Wokwi
